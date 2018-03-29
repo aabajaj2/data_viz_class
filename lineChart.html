@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+.line { fill: black; }
+
+</style>
+<body>
+<!-- load the d3.js library -->
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script>
+
+// set the dimensions and margins of the graph
+var margin = {top: 20, right: 20, bottom: 50, left: 50},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+// set the ranges
+var x = d3.scaleBand()
+          .range([0, width])
+          .padding(0.1);
+var y = d3.scaleLinear()
+          .range([height, 0]);
+
+//line function
+var line = d3.line()
+    .x(function(d) { console.log("D:", d);return x(d.key); }) // set the x values for the line generator
+    .y(function(d) { return y(d.value); }) // set the y values for the line generator
+    .curve(d3.curveMonotoneX) // apply smoothing to the line
+
+// append the svg object to the body of the page
+// append a 'group' element to 'svg'
+// moves the 'group' element to the top left margin
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// get the billionaires data
+d3.csv("data/billionaires.csv", function(error, data) {
+  if (error) throw error;
+  console.log(data);
+  var worthMap = new Map();
+
+  data.forEach(function(d) {
+    d.year = d.year;
+    d['worth in billions'] = +d['worth in billions'];
+   });
+
+   data.forEach(function(d) {
+     if (worthMap.has(d.year)) {
+       sum = worthMap.get(d.year)
+       sum = sum + (+d['worth in billions'])
+       worthMap.set(d.year, sum);
+     }else {
+       worthMap.set(d.year,  +d['worth in billions']);
+     }
+    });
+    console.log(worthMap);
+    var arr = Array.from(worthMap.values());
+
+  // Scale the range of the data in the domains
+  x.domain(data.map(function(d) { return d.year; }));
+  y.domain([0, d3.max(arr)]);
+  console.log("Before line chart");
+  console.log(worthMap.key);
+  // draw the line for the line chart
+  svg.append("path")
+      .datum(worthMap)
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("stroke-width", 1.5)
+      .attr("d", line);
+
+  // // add the x Axis
+  svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x))
+		 .selectAll("text")
+     .style("text-anchor", "end")
+        .attr("dx", ".8em")
+  .style("font-size", "15px")
+        .attr("dy", ".75em")
+
+  // add the y Axis
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  // svg.append("text")
+  //           .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+  //           .attr("transform", "translate("+ -margin.right*1.1 +","+(height/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+  //           .text("Worth in Billions");
+
+  svg.append("text")
+            .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+            .attr("transform", "translate("+ (width/2) +","+(height+margin.bottom)+")")  // text is drawn off the screen top left, move down and out and rotate
+            .text("Year");
+
+});
+
+</script>
+<!-- <p>Used https://bl.ocks.org/elt12njo/76b484f5187c7ecfc83070dd81897327/6741bd95237f3ed45867a843e8e5403b90386639 as reference</p> -->
+</body>
