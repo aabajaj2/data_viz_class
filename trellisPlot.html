@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+
+</style>
+<body>
+<!-- load the d3.js library -->
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script>
+
+// set the dimensions and margins of the graph
+var margin = {top: 20, right: 20, bottom: 40, left: 50},
+    width = 1500 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+// set the ranges
+var x = d3.scaleLinear()
+          .range([0, width]);
+          // .padding(0.1);
+var y = d3.scaleLinear()
+          .range([height, 0]);
+
+var cValue = function(d) { return d["gender"];},
+    color = d3.scaleOrdinal(d3.schemeCategory20);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// get the billionaires data
+d3.csv("data/billionaires.csv", function(error, data) {
+  if (error) throw error;
+  data.sort(function(x, y){
+   return d3.ascending(x.age, y.age);
+  })
+  console.log(data);
+
+  maleFiltered = data.filter(function (d) { return d.gender == 'male' })
+  femaleFiltered = data.filter(function (d) { return d.gender == 'female' })
+  marriedFiltered = data.filter(function (d) { return d.gender == 'married couple' })
+
+  x.domain([d3.min(data, function(d) { return +d['age']; }), d3.max(data, function(d) { return +d['age']; })]);
+  y.domain([0, d3.max(data, function(d) { return +d['worth in billions']; })]);
+
+  // 3 X-Axes
+  var x1 = d3.scaleLinear()
+            .range([0, width/3])
+  x1.domain([d3.min(data, function(d) { return +d['age']; }), d3.max(data, function(d) { return +d['age']; })]);
+
+  var x2 = d3.scaleLinear()
+            .range([width/3+margin.left, 2*(width/3)])
+  x2.domain([d3.min(data, function(d) { return +d['age']; }), d3.max(data, function(d) { return +d['age']; })]);
+
+  var x3 = d3.scaleLinear()
+            .range([2*(width/3)+margin.left, width])
+  x3.domain([d3.min(data, function(d) { return +d['age']; }), d3.max(data, function(d) { return +d['age']; })]);
+
+  svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x1).ticks(5))
+      .selectAll("text")
+      .style("text-anchor", "end")
+        .attr("dx", ".8em")
+      .style("font-size", "8px")
+        .attr("dy", ".75em")
+
+  svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x2).ticks(5))
+      .selectAll("text")
+      .style("text-anchor", "end")
+      .attr("dx", ".8em")
+      .style("font-size", "8px")
+      .attr("dy", ".75em")
+
+  svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x3).ticks(5))
+      .selectAll("text")
+      .style("text-anchor", "end")
+        .attr("dx", ".8em")
+      .style("font-size", "8px")
+        .attr("dy", ".75em")
+
+  // add the y Axis
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  svg.append("text")
+            .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+            .attr("transform", "translate("+ -margin.right*1.1 +","+(height/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+            .text("Worth in Billions");
+
+  svg.append("text")
+            .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+            .attr("transform", "translate("+ (width/2) +","+(height+margin.bottom)+")")
+              // text is drawn off the screen top left, move down and out and rotate
+            .text("Age");
+
+    console.log("male", maleFiltered);
+    console.log("female", femaleFiltered);
+    console.log("married", marriedFiltered);
+
+    svg.append("g")
+    .selectAll(".dot")
+        .data(maleFiltered)
+      .enter().append("circle")
+        .attr("class", "dot")
+        .attr("r", 3.5)
+        .attr("cx", function(d) { return x1(d['age']); })
+        .attr("cy", function(d) { return y(d["worth in billions"]); })
+        .style("fill", function(d) { return color(cValue(d))});
+
+    svg.append("g")
+      .selectAll(".dot")
+        .data(femaleFiltered)
+      .enter().append("circle")
+        .attr("class", "dot")
+        .attr("r", 3.5)
+        .attr("cx", function(d) { return x2(d['age']); })
+        .attr("cy", function(d) { return y(d["worth in billions"]); })
+        .style("fill", function(d) { return color(cValue(d))});
+
+    svg.append("g")
+        .selectAll(".dot")
+          .data(marriedFiltered)
+        .enter().append("circle")
+          .attr("class", "dot")
+          .attr("r", 3.5)
+          .attr("cx", function(d) { return x3(d['age']); })
+          .attr("cy", function(d) { return y(d["worth in billions"]); })
+          .style("fill", function(d) { return color(cValue(d))});
+
+//Legend
+// draw legend
+ var legend = svg.selectAll(".legend")
+     .data(color.domain())
+     .enter().append("g")
+     .attr("class", "legend")
+     .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+// draw legend colored rectangles
+legend.append("rect")
+    .attr("x", width - 18)
+    .attr("width", 18)
+    .attr("height", 18)
+    .style("fill", color);
+
+// draw legend text
+legend.append("text")
+    .attr("x", width - 24)
+    .attr("y", 9)
+    .attr("dy", ".35em")
+    .style("text-anchor", "end")
+    .text(function(d) { return d;})
+});
+
+</script>
+</body>

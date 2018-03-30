@@ -35,26 +35,32 @@ var svg = d3.select("body").append("svg")
 // get the billionaires data
 d3.csv("data/billionaires.csv", function(error, data) {
   if (error) throw error;
-  console.log(data);
+  // console.log(data);
 
   data.forEach(function(d) {
     d.year = d.year;
     d['worth in billions'] = +d['worth in billions'];
    });
-
+  // for aggregating worth in billions
+  var nested_data = d3.nest()
+    .key(function(d) { return d.year; })
+    .rollup(function(worth) { return { "sumworth": d3.sum(worth, function(d) {return parseFloat(+d['worth in billions']);})} })
+    .entries(data);
+    console.log("nested_data:");
+    console.log(nested_data);
   // Scale the range of the data in the domains
-  x.domain(data.map(function(d) { return d.year; }));
-  y.domain([0, d3.max(data, function(d) { return +d['worth in billions']; })]);
+  x.domain(nested_data.map(function(d) { return d.key; }));
+  y.domain([0, d3.max(nested_data, function(d) { return +d.value.sumworth; })]);
 
   // // append the rectangles for the bar chart
   svg.selectAll(".bar")
-      .data(data)
+      .data(nested_data)
     .enter().append("rect")
       .attr("class", "bar")
-      .attr("x", function(d) { return x(d.year); })
+      .attr("x", function(d) { return x(d.key); })
       .attr("width", x.bandwidth())
-      .attr("y", function(d) { return y(d['worth in billions']); })
-      .attr("height", function(d) { return height - y(d['worth in billions']); });
+      .attr("y", function(d) { return y(d.value.sumworth); })
+      .attr("height", function(d) { return height - y(d.value.sumworth); });
 
   // // add the x Axis
   svg.append("g")

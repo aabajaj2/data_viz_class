@@ -22,11 +22,9 @@ var x = d3.scaleBand()
 var y = d3.scaleLinear()
           .range([height, 0]);
 
-//line function
-var line = d3.line()
-    .x(function(d) { console.log("D:", d);return x(d.key); }) // set the x values for the line generator
-    .y(function(d) { return y(d.value); }) // set the y values for the line generator
-    .curve(d3.curveMonotoneX) // apply smoothing to the line
+
+
+
 
 // append the svg object to the body of the page
 // append a 'group' element to 'svg'
@@ -37,6 +35,17 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform",
           "translate(" + margin.left + "," + margin.top + ")");
+
+          console.log("x1996:", x(+'1996'));
+          console.log("x2001:", x(+'2001'));
+          console.log("x2014:", x(+'2014'));
+
+//line function
+var line = d3.line()
+    .x(function(d) { console.log("x:", x(d.key));
+    return x(d.key); }) // set the x values for the line generator
+    .y(function(d) { console.log("y:", y(d.value.sumworth));return y(d.value.sumworth); }) // set the y values for the line generator
+    .curve(d3.curveMonotoneX) // apply smoothing to the line
 
 // get the billionaires data
 d3.csv("data/billionaires.csv", function(error, data) {
@@ -49,32 +58,31 @@ d3.csv("data/billionaires.csv", function(error, data) {
     d['worth in billions'] = +d['worth in billions'];
    });
 
-   data.forEach(function(d) {
-     if (worthMap.has(d.year)) {
-       sum = worthMap.get(d.year)
-       sum = sum + (+d['worth in billions'])
-       worthMap.set(d.year, sum);
-     }else {
-       worthMap.set(d.year,  +d['worth in billions']);
-     }
-    });
-    console.log(worthMap);
-    var arr = Array.from(worthMap.values());
+   var nested_data = d3.nest()
+     .key(function(d) { return d.year; })
+     .rollup(function(worth) { return { "sumworth": d3.sum(worth, function(d) {return parseFloat(+d['worth in billions']);})} })
+     .entries(data);
+     console.log("nested_data:");
+     console.log(nested_data);
+
+   // data.forEach(function(d) {
+   //   if (worthMap.has(d.year)) {
+   //     sum = worthMap.get(d.year)
+   //     sum = sum + (+d['worth in billions'])
+   //     worthMap.set(d.year, sum);
+   //   }else {
+   //     worthMap.set(d.year,  +d['worth in billions']);
+   //   }
+   //  });
+   //  console.log(worthMap);
+
+  // var arr = Array.from(worthMap.values());
 
   // Scale the range of the data in the domains
-  x.domain(data.map(function(d) { return d.year; }));
-  y.domain([0, d3.max(arr)]);
-  console.log("Before line chart");
-  console.log(worthMap.key);
-  // draw the line for the line chart
-  svg.append("path")
-      .datum(worthMap)
-      .attr("fill", "none")
-      .attr("stroke", "steelblue")
-      .attr("stroke-linejoin", "round")
-      .attr("stroke-linecap", "round")
-      .attr("stroke-width", 1.5)
-      .attr("d", line);
+  x.domain(nested_data.map(function(d) { return d.key; }));
+  y.domain([0, d3.max(nested_data, function(d) { return +d.value.sumworth; })]);
+
+
 
   // // add the x Axis
   svg.append("g")
@@ -90,15 +98,25 @@ d3.csv("data/billionaires.csv", function(error, data) {
   svg.append("g")
     .call(d3.axisLeft(y));
 
-  // svg.append("text")
-  //           .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-  //           .attr("transform", "translate("+ -margin.right*1.1 +","+(height/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
-  //           .text("Worth in Billions");
+    // draw the line for the line chart
+  svg.append("path")
+      .datum(nested_data)
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("stroke-width", 1.5)
+      .attr("d", line);
+
+  /*svg.append("text")
+            .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+            .attr("transform", "translate("+ -margin.right*1.1 +","+(height/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+            .text("Worth in Billions");
 
   svg.append("text")
             .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
             .attr("transform", "translate("+ (width/2) +","+(height+margin.bottom)+")")  // text is drawn off the screen top left, move down and out and rotate
-            .text("Year");
+            .text("Year");*/
 
 });
 

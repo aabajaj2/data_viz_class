@@ -35,13 +35,13 @@ d3.csv("data/billionaires.csv", function(error, data) {
    return d3.ascending(x.age, y.age);
   })
 
-  data.forEach(function(d) {
-    console.log(d["worth in billions"]);
-   });
+  // data.forEach(function(d) {
+  //   console.log(d["worth in billions"]);
+  //  });
   // Scale the range of the data in the domains
   x.domain(data.map(function(d) { return d['age']; }));
   y.domain([0, d3.max(data, function(d) { return +d['worth in billions']; })]);
-  // console.log(d3.max(data, function(d) { return d['worth in billions']; }));
+
   svg.selectAll(".dot")
       .data(data)
     .enter().append("circle")
