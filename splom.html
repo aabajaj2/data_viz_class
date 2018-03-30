@@ -45,13 +45,19 @@ circle.hidden {
 
 var width = 960,
     size = 230,
-    padding = 20;
+    padding = 30;
 
 var x = d3.scaleLinear()
     .range([padding / 2, size - padding / 2]);
 
 var y = d3.scaleLinear()
     .range([size - padding / 2, padding / 2]);
+
+var gxScale = d3.scaleBand()
+    .range([padding / 2, size - padding / 2]);
+
+var gyScale = d3.scaleBand()
+    .range([size - padding / 2, padding / 2])
 
 color = d3.scaleOrdinal(d3.schemeCategory20);
 
@@ -61,7 +67,6 @@ d3.csv("data/billionaires.csv", function(error, data) {
   var domainByTrait = {},
       traits = d3.keys(data[0]).filter(function(d) { return d == "gender" || d == "age" || d == "worth in billions"; }),
       n = traits.length;
-  console.log(traits);
 
   traits.forEach(function(trait) {
     if(trait == "gender"){
@@ -78,25 +83,22 @@ d3.csv("data/billionaires.csv", function(error, data) {
     .append("g")
       .attr("transform", "translate(" + padding + "," + padding / 2 + ")");
 
+// X axes
   svg.selectAll(".x.axis")
       .data(traits)
     .enter().append("g")
       .attr("class", "x axis")
       .attr("transform", function(d, i) { return "translate(" + ((n - i - 1) * size) + ",0)"; })
       .each(function(d) {
-        console.log("DBYT",domainByTrait[d]);
         if (d == "gender"){
-          console.log("in gen");
-          x1Scale = d3.scaleBand()
-              .range([padding / 2, size - padding / 2]);
-          x1Scale.domain(domainByTrait[d]);
-          d3.select(this).call(d3.axisTop(x1Scale));
+          gxScale.domain(domainByTrait[d]);
+          d3.select(this).call(d3.axisTop(gxScale));
         } else {
           x.domain(domainByTrait[d]);
           d3.select(this).call(d3.axisTop(x).ticks(5));
         }
       });
-
+// Y axes
   svg.selectAll(".y.axis")
       .data(traits)
     .enter().append("g")
@@ -104,10 +106,8 @@ d3.csv("data/billionaires.csv", function(error, data) {
       .attr("transform", function(d, i) { return "translate(0," + i * size + ")"; })
       .each(function(d) {
         if (d == "gender"){
-          y1Scale = d3.scaleBand()
-              .range([size - padding / 2, padding / 2])
-          y1Scale.domain(domainByTrait[d]);
-          d3.select(this).call(d3.axisLeft(y1Scale));
+          gyScale.domain(domainByTrait[d]);
+          d3.select(this).call(d3.axisLeft(gyScale));
         } else {
           y.domain(domainByTrait[d]); d3.select(this).call(d3.axisLeft(y).ticks(5));
         }
@@ -143,8 +143,22 @@ d3.csv("data/billionaires.csv", function(error, data) {
     cell.selectAll("circle")
         .data(data)
       .enter().append("circle")
-        .attr("cx", function(d) { return x(d[p.x]); })
-        .attr("cy", function(d) { return y(d[p.y]); })
+        .attr("cx", function(d) {
+          console.log(p.x);
+          if(p.x == "gender"){
+            console.log("in gen", p.x);
+            return gxScale(d[p.x]);
+          }else {
+            return x(d[p.x]);
+          }
+        })
+        .attr("cy", function(d) {
+          if(p.y == "gender"){
+            return gyScale(d[p.y]);
+          }else {
+            return y(d[p.y]);
+          }
+        })
         .attr("r", 2)
         .style("fill", function(d) { return color(d.gender); });
   }

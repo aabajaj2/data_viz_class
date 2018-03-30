@@ -78,7 +78,7 @@ d3.csv("data/billionaires.csv", function(error, data) {
 
   svg.append("text")
             .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-            .attr("transform", "translate("+ -margin.right*1.1 +","+(height/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+            .attr("transform", "translate("+ margin.right*1.1 +","+(height/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
             .text("Worth in Billions");
 
   svg.append("text")
@@ -87,7 +87,6 @@ d3.csv("data/billionaires.csv", function(error, data) {
             .text("Year");
 
 });
-
 </script>
 <!-- <p>Used https://bl.ocks.org/elt12njo/76b484f5187c7ecfc83070dd81897327/6741bd95237f3ed45867a843e8e5403b90386639 as reference</p> -->
 </body>

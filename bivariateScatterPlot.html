@@ -10,14 +10,13 @@
 <script>
 
 // set the dimensions and margins of the graph
-var margin = {top: 20, right: 20, bottom: 40, left: 50},
-    width = 1500 - margin.left - margin.right,
+var margin = {top: 20, right: 20, bottom: 60, left: 50},
+    width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
 // set the ranges
-var x = d3.scaleBand()
+var x = d3.scaleLinear()
           .range([0, width])
-          .padding(0.1);
 var y = d3.scaleLinear()
           .range([height, 0]);
 
@@ -39,7 +38,7 @@ d3.csv("data/billionaires.csv", function(error, data) {
   //   console.log(d["worth in billions"]);
   //  });
   // Scale the range of the data in the domains
-  x.domain(data.map(function(d) { return d['age']; }));
+  x.domain([d3.min(data, function(d) { return +d['age']; }), d3.max(data, function(d) { return +d['age']; })]);
   y.domain([0, d3.max(data, function(d) { return +d['worth in billions']; })]);
 
   svg.selectAll(".dot")
@@ -71,7 +70,7 @@ d3.csv("data/billionaires.csv", function(error, data) {
 
   svg.append("text")
             .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-            .attr("transform", "translate("+ (width/2) +","+(height+margin.bottom)+")")
+            .attr("transform", "translate("+ (width/2) +","+(height+margin.bottom/2)+")")
               // text is drawn off the screen top left, move down and out and rotate
             .text("Age");
 });
