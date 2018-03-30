@@ -108,15 +108,15 @@ d3.csv("data/billionaires.csv", function(error, data) {
       .attr("stroke-width", 1.5)
       .attr("d", line);
 
-  /*svg.append("text")
+  svg.append("text")
             .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
-            .attr("transform", "translate("+ -margin.right*1.1 +","+(height/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+            .attr("transform", "translate("+ margin.right +","+(height/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
             .text("Worth in Billions");
 
   svg.append("text")
             .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
             .attr("transform", "translate("+ (width/2) +","+(height+margin.bottom)+")")  // text is drawn off the screen top left, move down and out and rotate
-            .text("Year");*/
+            .text("Year");
 
 });
 

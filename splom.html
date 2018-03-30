@@ -53,15 +53,6 @@ var x = d3.scaleLinear()
 var y = d3.scaleLinear()
     .range([size - padding / 2, padding / 2]);
 
-// var xAxis = d3.svg.axis()
-//     .scale(x)
-//     .orient("bottom")
-//     .ticks(6);
-//
-// var yAxis = d3.svg.axis()
-//     .scale(y)
-//     .orient("left")
-//     .ticks(6);
 color = d3.scaleOrdinal(d3.schemeCategory20);
 
 d3.csv("data/billionaires.csv", function(error, data) {
@@ -73,7 +64,12 @@ d3.csv("data/billionaires.csv", function(error, data) {
   console.log(traits);
 
   traits.forEach(function(trait) {
-    domainByTrait[trait] = d3.extent(data, function(d) { return d[trait]; });
+    if(trait == "gender"){
+      domainByTrait[trait] = data.map(function(d) { return d['gender']; })
+    }else {
+      domainByTrait[trait] = d3.extent(data, function(d) {
+      return +d[trait]; });
+    }
   });
 
   var svg = d3.select("body").append("svg")
@@ -86,22 +82,43 @@ d3.csv("data/billionaires.csv", function(error, data) {
       .data(traits)
     .enter().append("g")
       .attr("class", "x axis")
-      .attr("transform", function(d, i) { return "translate(" + (n - i - 1) * size + ",0)"; })
-      .each(function(d) { x.domain(domainByTrait[d]); d3.select(this).call(x); });
+      .attr("transform", function(d, i) { return "translate(" + ((n - i - 1) * size) + ",0)"; })
+      .each(function(d) {
+        console.log("DBYT",domainByTrait[d]);
+        if (d == "gender"){
+          console.log("in gen");
+          x1Scale = d3.scaleBand()
+              .range([padding / 2, size - padding / 2]);
+          x1Scale.domain(domainByTrait[d]);
+          d3.select(this).call(d3.axisTop(x1Scale));
+        } else {
+          x.domain(domainByTrait[d]);
+          d3.select(this).call(d3.axisTop(x).ticks(5));
+        }
+      });
 
   svg.selectAll(".y.axis")
       .data(traits)
     .enter().append("g")
       .attr("class", "y axis")
       .attr("transform", function(d, i) { return "translate(0," + i * size + ")"; })
-      .each(function(d) { y.domain(domainByTrait[d]); d3.select(this).call(y); });
+      .each(function(d) {
+        if (d == "gender"){
+          y1Scale = d3.scaleBand()
+              .range([size - padding / 2, padding / 2])
+          y1Scale.domain(domainByTrait[d]);
+          d3.select(this).call(d3.axisLeft(y1Scale));
+        } else {
+          y.domain(domainByTrait[d]); d3.select(this).call(d3.axisLeft(y).ticks(5));
+        }
+      });
 
   var cell = svg.selectAll(".cell")
       .data(cross(traits, traits))
     .enter().append("g")
       .attr("class", "cell")
-      .attr("transform", function(d) { return "translate(" + (n - d.i - 1) * size + "," + d.j * size + ")"; })
-      .each(plot);
+      .attr("transform", function(d) { return "translate(" + ((n - d.i - 1) * size) + "," + (d.j * size) + ")"; })
+      .each(plot)
 
   // Titles for the diagonal.
   cell.filter(function(d) { return d.i === d.j; }).append("text")
@@ -116,9 +133,6 @@ d3.csv("data/billionaires.csv", function(error, data) {
     x.domain(domainByTrait[p.x]);
     y.domain(domainByTrait[p.y]);
 
-    // console.log(domainByTrait[p.x]);
-    // console.log(domainByTrait[p.x]);
-
     cell.append("rect")
         .attr("class", "frame")
         .attr("x", padding / 2)
@@ -126,13 +140,13 @@ d3.csv("data/billionaires.csv", function(error, data) {
         .attr("width", size - padding)
         .attr("height", size - padding);
 
-    // cell.selectAll("circle")
-    //     .data(data)
-    //   .enter().append("circle")
-    //     .attr("cx", function(d) { return x(d[p.x]); })
-    //     .attr("cy", function(d) { return y(d[p.y]); })
-    //     .attr("r", 2)
-        // .style("fill", function(d) { return color(d.gender); });
+    cell.selectAll("circle")
+        .data(data)
+      .enter().append("circle")
+        .attr("cx", function(d) { return x(d[p.x]); })
+        .attr("cy", function(d) { return y(d[p.y]); })
+        .attr("r", 2)
+        .style("fill", function(d) { return color(d.gender); });
   }
 
 function cross(a, b) {
